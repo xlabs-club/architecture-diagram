@@ -1,2 +1,3 @@
 # architecture-diagram
-Architecture diagrams.
+
+Some architecture diagrams.

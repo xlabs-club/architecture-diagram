@@ -1,0 +1,34 @@
+@startuml Code Server Auth
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!include DEVICONS/nginx.puml
+!include DEVICONS/visualstudio.puml
+!include DEVICONS/go.puml
+!include DEVICONS/java.puml
+!include DEVICONS/postgresql.puml
+!include FONTAWESOME/users.puml
+!include FONTAWESOME/address_card.puml
+
+HIDE_STEREOTYPE()
+
+Person(user, "Developer", "Developers that need VS Code in the browser", $sprite="users")
+Container(ingress, "Service Ingress", "nginx", "Ingress domain for all users", $sprite="nginx")
+Container(ap, "Auth Proxy", "oauth2-proxy", "A reverse proxy that provides authentication with identity provider", $sprite="go")
+Container(keycloak, "Auth Provider", "Keycloak", "Open Source Identity and Access Management For Modern Applications and Services", $sprite="address_card")
+Container(gateway, "Gateway", "nginx", "Proxy request to the user's code-server instance", $sprite="nginx")
+Container(cdr1, "Code Server A", "code-server", "A code-server instance for user Zhangsan", $sprite="visualstudio")
+Container(cdr2, "Code Server B", "code-server", "A code-server instance for user Lisi", $sprite="visualstudio")
+ContainerDb(db, "Database", "PostgreSQL", "Holds users, groups and clients", $sprite="postgresql")
+
+Rel(user, ingress, "Uses", "https")
+Rel(ingress, gateway, "X-Forwarded-User", "http")
+Rel(gateway, cdr1, "Proxy pass", "http")
+Rel(gateway, cdr2, "Proxy pass", "http")
+Rel_R(ingress, ap, "Auth signin", "https")
+Rel(ap, keycloak, "OIDC", "https")
+Rel(keycloak, db, "Reads/Writes", "jdbc")
+
+@enduml
