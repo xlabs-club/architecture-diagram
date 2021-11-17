@@ -11,10 +11,21 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Generate SVG Diagrams
-        uses: cloudbees/plantuml-github-action@master
-        with:
-            args: -v -tsvg ${{ steps.getfile.outputs.files }}
+      - name: Get changed UML files
+        id: getfile
+        run: |
+          git diff-tree -r --no-commit-id --summary ${{ github.sha }} \
+          | awk -F' ' '{
+            if ( $1 !~ /^delete$/ && $4 ~ /\.puml$/ && $4 !~ /(theme|config)\.puml$/ )
+            {
+              printf "::set-output name=files::" "%s ", $4
+            }
+          }
+          END { print "" }
+          '
+      - name: UML files considered echo output
+        run: |
+          echo ${{ steps.getfile.outputs.files }}
       - name: Generate SVG Diagrams
         uses: cloudbees/plantuml-github-action@master
         with:
