@@ -14,14 +14,14 @@ jobs:
       - name: Generate SVG Diagrams
         uses: holowinski/plantuml-github-action@main
         with:
-            args: -v -tsvg "**/**.puml" -o dist
+            args: -v -tsvg "**/**.puml" -o ${{ github.workspace }}/dist
       - name: Generate PNG Diagrams
         uses: holowinski/plantuml-github-action@main
         with:
-            args: -v -tpng "**/**.puml" -o dist
+            args: -v -tpng "**/**.puml" -o ${{ github.workspace }}/dist
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist
+          publish_dir: ${{ github.workspace }}/dist
           publish_branch: export
