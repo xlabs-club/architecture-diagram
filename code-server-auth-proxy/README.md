@@ -1,3 +1,4 @@
+#! https://zhuanlan.zhihu.com/p/436908506
 # code-server-auth-proxy
 
 Securing Visual Studio [code-server][], support multi-user.
@@ -25,6 +26,30 @@ Securing Visual Studio [code-server][], support multi-user.
 架构图如下。
 
 ![code-server-auth-proxy](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/l10178/architecture-diagram/main/code-server-auth-proxy/code-server-auth-proxy.puml)
+
+## 核心逻辑
+
+架构图简单解读，所有过程官方文档都有详细说明，都是配置，以官方配置为准。
+
+1. keycloak 创建 client，使用 OIDC 协议，作为 oauth2-proxy 的 provider。
+2. ingress(nginx) 使用 auth_request 指令拦截所有请求，从 oauth2-proxy 进行代理认证，配置可参考 [oauth2-proxy auth_request](https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview/#configuring-for-use-with-the-nginx-auth_request-directive) 指导。
+
+   ```yaml
+   nginx.ingress.kubernetes.io/auth-signin: https://$host/oauth2/start?rd=$escaped_request_uri
+   nginx.ingress.kubernetes.io/auth-url: https://$host/oauth2/auth
+   ```
+
+3. 认证通过后，将用户名/ID 作为标识，通过 Http Header (举例如 X-Forwarded-Preferred-Username) 传入 upstream。
+4. gateway(nginx) 从 Header 中获取用户标识，代理到此用户对应的 code-server 实例。
+
+   ```nginx
+     location / {
+       ……
+       proxy_pass http://code-server-$http_x_forwarded_for_preferred_username;
+     }
+   ```
+
+5. code-server 各个实例部署时，以免认证方式部署。
 
 [code-server]: https://github.com/cdr/code-server
 [keycloak]: https://github.com/keycloak/keycloak
