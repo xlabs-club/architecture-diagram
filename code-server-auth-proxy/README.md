@@ -1,4 +1,3 @@
-#! https://zhuanlan.zhihu.com/p/436908506
 # code-server-auth-proxy
 
 Securing Visual Studio [code-server][], support multi-user.
